@@ -32,7 +32,8 @@ mongoose.connect(DB_CONFIG.CONN_STR, { useNewUrlParser: true, useUnifiedTopology
 
   Puzzle = mongoose.model('Puzzle', {
     _id: Number,
-    name: String
+    name: String,
+    img: String
   });
 
   Score = mongoose.model('Score', {
@@ -46,7 +47,9 @@ mongoose.connect(DB_CONFIG.CONN_STR, { useNewUrlParser: true, useUnifiedTopology
 
   // Check if Puzzle is empty
   // if empty, populate puzzles
-  const puzzles  = [{_id: 0, name: 'Sudoku'}, {_id: 1, name: 'Nonograms'}]
+  const puzzles  = [
+    {_id: 0, name: 'Sudoku', img: 'https://duckduckgo.com/i/bf13d1d9.png'},
+    {_id: 1, name: 'Nonograms', img: 'https://d3lj2s469wtjp0.cloudfront.net/images/nonograms-logo.png'}]
   Puzzle.countDocuments({}, (err, count) => {
     if (count == 0) {
       puzzles.forEach(puzzle => {
