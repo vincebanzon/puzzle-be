@@ -53,7 +53,7 @@ mongoose.connect(DB_CONFIG.CONN_STR, { useNewUrlParser: true, useUnifiedTopology
   Puzzle.countDocuments({}, (err, count) => {
     if (count == 0) {
       puzzles.forEach(puzzle => {
-        const puzzleModel = new Puzzle({_id: puzzle._id, name: puzzle.name});
+        const puzzleModel = new Puzzle({_id: puzzle._id, name: puzzle.name, img: puzzle.img});
         puzzleModel.save().then(() => console.log(`Populated puzzle ${puzzle.name}`));
       })
     }
