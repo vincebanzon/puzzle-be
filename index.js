@@ -25,9 +25,36 @@ let Score;
 // Connect to database
 mongoose.connect(DB_CONFIG.CONN_STR, { useNewUrlParser: true, useUnifiedTopology: true}).then(() => {
   // Create models
-  User = mongoose.model('User', { username: String, password: String });
-  Puzzle = mongoose.model('Puzzle', { name: String });
-  Score = mongoose.model('Score', { name: String });
+  User = mongoose.model('User', {
+    username: String,
+    password: String
+  });
+
+  Puzzle = mongoose.model('Puzzle', {
+    _id: Number,
+    name: String
+  });
+
+  Score = mongoose.model('Score', {
+    user_id: String,
+    puzzle_id: Number,
+    difficulty: Number,
+    time: Number,
+    score: Number,
+    values: String      // To save game progress and be retrievable after logout
+  });
+
+  // Check if Puzzle is empty
+  // if empty, populate puzzles
+  const puzzles  = [{_id: 0, name: 'Sudoku'}, {_id: 1, name: 'Nonograms'}]
+  Puzzle.countDocuments({}, (err, count) => {
+    if (count == 0) {
+      puzzles.forEach(puzzle => {
+        const puzzleModel = new Puzzle({_id: puzzle._id, name: puzzle.name});
+        puzzleModel.save().then(() => console.log(`Populated puzzle ${puzzle.name}`));
+      })
+    }
+  })
 
   console.log('Successfully connected to MongoDB.');
 }).catch(err => {
@@ -121,8 +148,50 @@ async function signin (req, res) {
     });
 }
 
+async function isUserSignedIn(req, res, next) {
+  next();
+}
+
+async function getAllPuzzles (req, res) {
+  Puzzle.find({}, (err, result) => {
+    res.send(result)
+  })
+}
+
+async function getAllScores (req, res) {
+  Score.find({}, (err, result) => {
+    res.send(result)
+  })
+}
+
+async function insertNewScore(req, res) {
+  const userId=0;
+  const puzzleId=0;
+  console.log('req.params: ', req.body);
+  const difficulty = req.body.difficulty;
+  const time = req.body.time;
+  const score = req.body.score;
+  const values = req.body.values;
 
 
+  // add validations here
+  if (false) {
+    res.status(404).end();
+    return;
+  }
+
+  newScore = new Score({
+    user_id: userId,
+    puzzle_id: puzzleId,
+    difficulty,
+    time,
+    score,
+    values
+  })
+  newScore.save().then(() => {
+    res.send('ok')
+  })
+}
 
 
 const router = express.Router();
@@ -133,17 +202,11 @@ app.get('/', (req, res) => {
   res.send({message: 'API works'})
 })
 
-app.post(v1+'/user/signup', checkDuplicateUsername, signup);
+app.put(v1+'/user/signup', checkDuplicateUsername, signup);
 app.post(v1+'/user/signin', signin);
-
-
-// const user = new User({ name: 'Zildjian' });
-// const puzzle = new Puzzle({ name: 'Zildjian' });
-// const score = new Score({ name: 'Zildjian' });
-
-// user.save().then(() => console.log('meow'));
-// puzzle.save().then(() => console.log('meow'));
-// score.save().then(() => console.log('meow'));
+app.get(v1+'/puzzles/', getAllPuzzles);
+app.get(v1+'/scores', getAllScores);
+app.put(v1+'/score/new', isUserSignedIn, insertNewScore);
 
 const PORT= 4200;
 app.listen(PORT, () => console.log(`Commissary web service app listening on port ${PORT}`));
